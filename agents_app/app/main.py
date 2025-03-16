@@ -2,10 +2,12 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
 import sys
+from typing import Optional, Dict, Any, List
 
 # weather_agentsモジュールからインポート
 from sdk_agents.base import get_weather_info_async
 from sdk_agents.web_search import get_web_search_info_async
+from sdk_agents.computer_use import run_computer_use_async
 
 app = FastAPI(title="Weather Agent API")
 
@@ -16,6 +18,18 @@ class WeatherResponse(BaseModel):
 
 class WebSearchResponse(BaseModel):
     web_search_info: str
+
+
+class ComputerUseRequest(BaseModel):
+    instruction: str
+    environment: str = "browser"
+    display_width: int = 1024
+    display_height: int = 768
+    screenshot_base64: Optional[str] = None
+
+
+class ComputerUseResponse(BaseModel):
+    result: Dict[str, Any]
 
 
 @app.get("/")
@@ -40,5 +54,20 @@ async def web_search():
             "最新のテクノロジートレンドについて教えてください"
         )
         return WebSearchResponse(web_search_info=web_search_info)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/computer_use", response_model=ComputerUseResponse)
+async def computer_use(request: ComputerUseRequest):
+    try:
+        result = await run_computer_use_async(
+            instruction=request.instruction,
+            environment=request.environment,
+            display_width=request.display_width,
+            display_height=request.display_height,
+            screenshot_base64=request.screenshot_base64,
+        )
+        return ComputerUseResponse(result=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

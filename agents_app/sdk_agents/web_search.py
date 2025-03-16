@@ -39,7 +39,7 @@ async def get_web_search_info_async(query: str) -> str:
 # 非同期関数を定義して実行
 async def main():
     result = await Runner.run(
-        research_agent, "最新の量子コンピューティングの進展について教えてください。"
+        research_agent, "最新のAIコーディングアシスタントについて教えてください"
     )
     print(result.final_output)
 
